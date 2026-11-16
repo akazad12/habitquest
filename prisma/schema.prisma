@@ -1,0 +1,256 @@
+generator client {
+ provider = "prisma-client"
+ output = "../apps/api/src/generated/prisma"
+}
+datasource db {
+ provider = "postgresql"
+}
+model User {
+ id String @id @default(uuid()) @db.Uuid
+ displayName String @default("HabitQuest member") @db.VarChar(80)
+ sessions Session[]
+ freezes StreakFreeze[]
+ email String @unique @db.VarChar(254)
+ passwordHash String? @db.VarChar(255)
+ timezone String @default("UTC") @db.VarChar(100)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ habits Habit[]
+ rewards Reward[]
+ redemptions RewardRedemption[]
+ xpTransactions XpTransaction[]
+ coinTransactions CoinTransaction[]
+ achievements UserAchievement[]
+}
+model Habit {
+ id String @id @default(uuid()) @db.Uuid
+ userId String @db.Uuid
+ category String @default("Personal") @db.VarChar(50)
+ difficulty Difficulty @default(MEDIUM)
+ title String @db.VarChar(120)
+ description String? @db.VarChar(1000)
+ archivedAt DateTime? @db.Timestamptz(3)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ user User @relation(fields:[userId], references:[id], onDelete:Restrict)
+ schedules HabitScheduleVersion[]
+ completions HabitCompletion[]
+ pauses HabitPause[]
+ freezeUses StreakFreezeUse[]
+ @@index([userId, archivedAt])
+}
+model HabitScheduleVersion {
+ id String @id @default(uuid()) @db.Uuid
+ habitId String @db.Uuid
+ effectiveFrom DateTime @db.Date
+ effectiveUntil DateTime? @db.Date
+ timezone String @db.VarChar(100)
+ kind RecurrenceKind @default(WEEKDAYS)
+ intervalDays Int?
+ anchorDate DateTime? @db.Date
+ weekdays Int[]
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ habit Habit @relation(fields:[habitId], references:[id], onDelete:Restrict)
+ completions HabitCompletion[]
+ freezeUses StreakFreezeUse[]
+ @@unique([id,habitId])
+ @@unique([habitId,effectiveFrom])
+}
+model HabitCompletion {
+ id String @id @default(uuid()) @db.Uuid
+ habitId String @db.Uuid
+ scheduleVersionId String @db.Uuid
+ scheduledDate DateTime @db.Date
+ undoneAt DateTime? @db.Timestamptz(3)
+ timezone String @default("UTC") @db.VarChar(100)
+ completedAt DateTime @default(now()) @db.Timestamptz(3)
+ habit Habit @relation(fields:[habitId], references:[id], onDelete:Restrict)
+ schedule HabitScheduleVersion @relation(fields:[scheduleVersionId,habitId], references:[id,habitId], onDelete:Restrict)
+ progressionReward CompletionReward?
+ xpTransaction XpTransaction?
+ coinTransaction CoinTransaction?
+ @@unique([habitId,scheduledDate])
+ @@index([scheduledDate])
+}
+model XpTransaction {
+ rewardEventId String? @unique @db.Uuid
+ rewardEvent CompletionRewardEvent? @relation(fields:[rewardEventId], references:[id], onDelete:Restrict)
+ id String @id @default(uuid()) @db.Uuid
+ userId String @db.Uuid
+ completionId String? @unique @db.Uuid
+ amount Int
+ reason String @db.VarChar(200)
+ idempotencyKey String @unique @db.VarChar(200)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ user User @relation(fields:[userId], references:[id], onDelete:Restrict)
+ completion HabitCompletion? @relation(fields:[completionId], references:[id], onDelete:Restrict)
+ @@index([userId,createdAt])
+}
+model CoinTransaction {
+ rewardEventId String? @unique @db.Uuid
+ rewardEvent CompletionRewardEvent? @relation(fields:[rewardEventId], references:[id], onDelete:Restrict)
+ id String @id @default(uuid()) @db.Uuid
+ userId String @db.Uuid
+ completionId String? @unique @db.Uuid
+ redemptionId String? @unique @db.Uuid
+ amount Int
+ reason String @db.VarChar(200)
+ idempotencyKey String @unique @db.VarChar(200)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ user User @relation(fields:[userId], references:[id], onDelete:Restrict)
+ completion HabitCompletion? @relation(fields:[completionId], references:[id], onDelete:Restrict)
+ redemption RewardRedemption? @relation("RedemptionDebit",fields:[redemptionId,userId], references:[id,userId], onDelete:Restrict)
+ refundRedemptionId String? @unique @db.Uuid
+ refundRedemption RewardRedemption? @relation("RedemptionRefund",fields:[refundRedemptionId,userId],references:[id,userId],onDelete:Restrict)
+ @@unique([redemptionId,userId])
+ @@unique([refundRedemptionId,userId])
+ @@index([userId,createdAt])
+}
+model Reward {
+ description String? @db.VarChar(1000)
+ category String @default("Personal") @db.VarChar(50)
+ icon String? @db.VarChar(30)
+ createdAt DateTime? @db.Timestamptz(3)
+ updatedAt DateTime? @updatedAt @db.Timestamptz(3)
+ id String @id @default(uuid()) @db.Uuid
+ userId String @db.Uuid
+ title String @db.VarChar(120)
+ coinCost Int
+ archivedAt DateTime? @db.Timestamptz(3)
+ user User @relation(fields:[userId], references:[id], onDelete:Restrict)
+ redemptions RewardRedemption[]
+ @@unique([id,userId])
+ @@index([userId,archivedAt])
+}
+model RewardRedemption {
+ status RedemptionStatus @default(PENDING)
+ lifecycleManaged Boolean @default(false)
+ fulfilledAt DateTime? @db.Timestamptz(3)
+ canceledAt DateTime? @db.Timestamptz(3)
+ rewardDescription String? @db.VarChar(1000)
+ rewardCategory String? @db.VarChar(50)
+ rewardIcon String? @db.VarChar(30)
+ events RedemptionEvent[]
+ id String @id @default(uuid()) @db.Uuid
+ userId String @db.Uuid
+ rewardId String @db.Uuid
+ coinCost Int
+ rewardTitle String @db.VarChar(120)
+ idempotencyKey String @unique @db.VarChar(200)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ user User @relation(fields:[userId], references:[id], onDelete:Restrict)
+ reward Reward @relation(fields:[rewardId,userId], references:[id,userId], onDelete:Restrict)
+ coinTransaction CoinTransaction? @relation("RedemptionDebit")
+ refundTransaction CoinTransaction? @relation("RedemptionRefund")
+ @@unique([id,userId])
+ @@index([userId,createdAt])
+}
+model Achievement {
+ id String @id @default(uuid()) @db.Uuid
+ key String @unique @db.VarChar(100)
+ title String @db.VarChar(120)
+ description String @db.VarChar(1000)
+ users UserAchievement[]
+}
+model UserAchievement {
+ userId String @db.Uuid
+ achievementId String @db.Uuid
+ unlockedAt DateTime @default(now()) @db.Timestamptz(3)
+ user User @relation(fields:[userId], references:[id], onDelete:Restrict)
+ achievement Achievement @relation(fields:[achievementId], references:[id], onDelete:Restrict)
+ @@id([userId,achievementId])
+}
+
+enum Difficulty {
+ EASY
+ MEDIUM
+ HARD
+}
+enum RecurrenceKind {
+ DAILY
+ WEEKDAYS
+ INTERVAL
+}
+model Session {
+ id String @id @default(uuid()) @db.Uuid
+ tokenHash String @unique @db.Char(64)
+ csrfToken String @db.Char(64)
+ userId String @db.Uuid
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ expiresAt DateTime @db.Timestamptz(3)
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ @@index([userId])
+ @@index([expiresAt])
+}
+
+model CompletionReward {
+ id String @id @default(uuid()) @db.Uuid
+ completionId String @unique @db.Uuid
+ difficulty Difficulty
+ baseXp Int
+ bonusPercent Int
+ xp Int
+ coins Int
+ streakAtAward Int
+ revision Int @default(0)
+ active Boolean @default(false)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ completion HabitCompletion @relation(fields:[completionId],references:[id],onDelete:Restrict)
+ events CompletionRewardEvent[]
+}
+model CompletionRewardEvent {
+ id String @id @default(uuid()) @db.Uuid
+ rewardId String @db.Uuid
+ revision Int
+ direction Int
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ reward CompletionReward @relation(fields:[rewardId],references:[id],onDelete:Restrict)
+ xpTransaction XpTransaction?
+ coinTransaction CoinTransaction?
+ @@unique([rewardId,revision])
+}
+model StreakFreeze {
+ id String @id @default(uuid()) @db.Uuid
+ userId String @db.Uuid
+ source String @default("INITIAL") @db.VarChar(50)
+ grantedDate DateTime @db.Date
+ timezone String @db.VarChar(100)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ user User @relation(fields:[userId],references:[id],onDelete:Restrict)
+ use StreakFreezeUse?
+ @@unique([userId,source])
+}
+model StreakFreezeUse {
+ freezeId String @id @db.Uuid
+ habitId String @db.Uuid
+ scheduleVersionId String @db.Uuid
+ scheduledDate DateTime @db.Date
+ timezone String @db.VarChar(100)
+ usedAt DateTime @default(now()) @db.Timestamptz(3)
+ freeze StreakFreeze @relation(fields:[freezeId],references:[id],onDelete:Restrict)
+ habit Habit @relation(fields:[habitId],references:[id],onDelete:Restrict)
+ schedule HabitScheduleVersion @relation(fields:[scheduleVersionId,habitId],references:[id,habitId],onDelete:Restrict)
+ @@unique([habitId,scheduledDate])
+}
+model HabitPause {
+ id String @id @default(uuid()) @db.Uuid
+ habitId String @db.Uuid
+ fromDate DateTime @db.Date
+ untilDate DateTime? @db.Date
+ timezone String @db.VarChar(100)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ habit Habit @relation(fields:[habitId],references:[id],onDelete:Restrict)
+ @@index([habitId,fromDate])
+}
+
+enum RedemptionStatus {
+ PENDING
+ FULFILLED
+ CANCELED
+}
+model RedemptionEvent {
+ id String @id @default(uuid()) @db.Uuid
+ redemptionId String @db.Uuid
+ status RedemptionStatus
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ redemption RewardRedemption @relation(fields:[redemptionId],references:[id],onDelete:Restrict)
+ @@unique([redemptionId,status])
+}

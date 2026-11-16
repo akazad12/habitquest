@@ -1,0 +1,56 @@
+{
+  "name": "habitquest",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n shared,api,web \"npm run dev -w @habitquest/shared\" \"npm run dev -w @habitquest/api\" \"npm run dev -w @habitquest/web\"",
+    "build": "npm run build -w @habitquest/shared && npm run build -w @habitquest/api && npm run build -w @habitquest/web",
+    "typecheck": "npm run build -w @habitquest/shared && npm run typecheck --workspaces --if-present && tsc --noEmit -p tsconfig.tools.json",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "predev": "npm run build -w @habitquest/shared",
+    "test:db": "vitest run tests/database.test.ts tests/phase2.test.ts tests/progression.integration.test.ts tests/rewards.integration.test.ts tests/analytics.integration.test.ts",
+    "pretest": "npm run build -w @habitquest/shared",
+    "pretest:db": "npm run build -w @habitquest/shared",
+    "sessions:prune": "npm run sessions:prune -w @habitquest/api",
+    "test:gamification": "vitest run tests/progression-engine.test.ts tests/progression.integration.test.ts",
+    "pretest:gamification": "npm run build -w @habitquest/shared",
+    "test:rewards": "vitest run tests/rewards.integration.test.ts",
+    "pretest:rewards": "npm run build -w @habitquest/shared",
+    "test:analytics": "vitest run tests/analytics-engine.test.ts tests/analytics.integration.test.ts",
+    "pretest:analytics": "npm run build -w @habitquest/shared"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.0.0",
+    "@prisma/adapter-pg": "^7.0.0",
+    "dotenv": "^17.2.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "prisma": "^7.0.0",
+    "vitest": "^4.0.0",
+    "eslint": "^9.0.0",
+    "@eslint/js": "^9.0.0",
+    "typescript-eslint": "^8.0.0",
+    "eslint-plugin-react-hooks": "^7.0.0",
+    "globals": "^16.0.0",
+    "prettier": "^3.0.0",
+    "concurrently": "^9.0.0",
+    "@types/node": "^24.0.0",
+    "supertest": "^7.0.0",
+    "@types/supertest": "^6.0.0"
+  }
+}

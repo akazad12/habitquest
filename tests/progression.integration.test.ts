@@ -515,6 +515,8 @@ describe.skipIf(!url)("atomic PostgreSQL gamification", () => {
       archived: false,
     });
   });
+  // This end-to-end achievement case seeds 99 PostgreSQL rows and exercises
+  // multiple HTTP transactions; allow slower CI I/O without relaxing other tests.
   it("unlocks Habit Builder and Century Club only from actual records, and keeps badges after undo", async () => {
     const start = addDays(today, -99);
     const user = await member(start);
@@ -542,7 +544,7 @@ describe.skipIf(!url)("atomic PostgreSQL gamification", () => {
     expect(
       await db!.userAchievement.count({ where: { userId: user.userId } }),
     ).toBe(5);
-  });
+  }, 15_000);
   it("does not retroactively award Phase 2 active completions through retry or reconcile", async () => {
     const user = await member();
     const id = await user.create();

@@ -1,0 +1,15 @@
+{
+  "verifiedAt": "2026-11-17T00:26:50Z",
+  "platform": "Linux arm64 in official Node Docker image",
+  "nodeVersion": "v24.22.3",
+  "image": "node:24-bookworm-slim",
+  "imageId": "sha256:8400c2d5d72e1cb9efd5ac46761a9d4622d5f92e81b620db71d4042ebaf68665",
+  "checks": {
+    "cleanNpmCi": "passed",
+    "prismaGenerate": "passed",
+    "sharedApiWebProductionBuilds": "passed",
+    "productionSmokeWithoutEnvFile": "passed"
+  },
+  "database": "Intentionally unavailable for smoke test; no user data or database writes",
+  "hostedCi": "Not run for Phase 5; no push authorized"
+}

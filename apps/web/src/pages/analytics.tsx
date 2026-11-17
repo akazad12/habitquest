@@ -58,7 +58,12 @@ function DataTable({
   return (
     <details className="chart-data">
       <summary>View chart data</summary>
-      <div className="table-scroll">
+      <div
+        className="table-scroll"
+        tabIndex={0}
+        role="region"
+        aria-label="Scrollable data table"
+      >
         <table>
           <thead>
             <tr>
@@ -301,7 +306,7 @@ function Heatmap({ data }: { data: Analytics }) {
                 }
               }}
             >
-              {day.completed || "·"}
+              {day.completed}
             </button>
           ))}
         </div>
@@ -424,7 +429,12 @@ function HabitAnalytics({ data }: { data: Analytics }) {
         </p>
       ) : (
         <>
-          <div className="table-scroll">
+          <div
+            className="table-scroll"
+            tabIndex={0}
+            role="region"
+            aria-label="Scrollable data table"
+          >
             <table className="habit-stats-table">
               <thead>
                 <tr>
@@ -491,7 +501,12 @@ function HabitAnalytics({ data }: { data: Analytics }) {
               </h3>
               {detail.history.length ? (
                 <>
-                  <div className="table-scroll">
+                  <div
+                    className="table-scroll"
+                    tabIndex={0}
+                    role="region"
+                    aria-label="Scrollable data table"
+                  >
                     <table>
                       <thead>
                         <tr>

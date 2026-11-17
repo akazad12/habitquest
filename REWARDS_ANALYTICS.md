@@ -1,5 +1,7 @@
 # Rewards and analytics — Phase 4
 
+> Phase 5 operational verification supersedes the historical results below: see [the current handoff](docs/PHASE5_HANDOFF.md). Progression and analytics product rules are unchanged. The adapter warning was avoided through sequential batch relation reads; no major dependency upgrade or warning suppression was used.
+
 Phase 4 extends the existing npm workspaces, session authentication, CSRF validation, Prisma models, and progression ledger. It does not change difficulty awards, XP thresholds, streak counting, freezes, permanent achievements, or today-only completion/undo rules. No real-money transaction is supported.
 
 ## Rewards economy
@@ -120,4 +122,4 @@ Manual workflow with your own account:
 7. Undo an eligible current-day completion and verify actual completion and net XP/coin changes. If purchased coins prevent reversal, expect 409 with no partial writes.
 8. Check keyboard navigation, dialog Escape before submission, labeled errors, chart data tables, and mobile layouts. Sign out.
 
-Local result: **149 tests in ten files passed**, with TypeScript, ESLint, formatting, production builds, Prisma validation, fresh four-migration deployment, existing-database deployment, and schema drift checks. Browser fixture reconciliation is recorded separately in the Phase 4 handoff. The existing Prisma/node-postgres concurrent-query deprecation warning remains visible. Hosted CI, production HTTPS deployment, production-scale history performance, formal assistive-technology review, and OS-level reduced-motion emulation are unverified. No Phase 5 work has begun.
+Historical Phase 4 result: **149 tests in ten files passed**, with TypeScript, ESLint, formatting, production builds, Prisma validation, fresh four-migration deployment, existing-database deployment, and schema drift checks. Browser fixture reconciliation is recorded separately in the Phase 4 handoff. Phase 4 emitted the Prisma/node-postgres concurrent-query warning. Phase 5 avoids the affected loader path, adds local performance/accessibility/reliability verification, and prepares deployment configuration; see [the current handoff](docs/PHASE5_HANDOFF.md) for passed and unverified checks. Live deployment and independent certification remain unverified.

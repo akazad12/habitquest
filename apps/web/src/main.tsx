@@ -10,6 +10,7 @@ import {
   Link,
   Navigate,
   Outlet,
+  useLocation,
 } from "react-router-dom";
 import {
   Zap,
@@ -48,6 +49,14 @@ function Shell() {
 }
 function Workspace() {
   const { user } = useAuth();
+  const { pathname } = useLocation();
+  React.useEffect(() => {
+    document.getElementById("main")?.focus();
+    const page = navigation.find((n) =>
+      n.path === "/" ? pathname === "/" : pathname.startsWith(n.path),
+    );
+    document.title = `${page?.title ?? "Workspace"} · HabitQuest`;
+  }, [pathname]);
   if (!user) return null;
   return (
     <>

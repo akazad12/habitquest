@@ -254,3 +254,10 @@ model RedemptionEvent {
  redemption RewardRedemption @relation(fields:[redemptionId],references:[id],onDelete:Restrict)
  @@unique([redemptionId,status])
 }
+
+model AuthRateLimit {
+ key String @id @db.Char(64)
+ hits Int
+ expiresAt DateTime @db.Timestamptz(3)
+ @@index([expiresAt])
+}

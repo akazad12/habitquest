@@ -21,7 +21,9 @@ export async function api<T>(
     headers?: Record<string, string>;
   } = {},
 ): Promise<T> {
-  const base = import.meta.env.VITE_API_URL || "http://localhost:3001";
+  const base =
+    import.meta.env.VITE_API_URL ||
+    (import.meta.env.DEV ? "http://localhost:3001" : "");
   const method = options.method ?? "GET";
   let response: Response;
   try {

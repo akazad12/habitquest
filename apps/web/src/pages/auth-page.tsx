@@ -47,7 +47,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
     }
   }
   return (
-    <div className="auth-layout">
+    <main className="auth-layout">
       <section className="auth-intro">
         <Link className="brand" to="/">
           <span>
@@ -151,6 +151,6 @@ export function AuthPage({ register = false }: { register?: boolean }) {
           </Link>
         </p>
       </section>
-    </div>
+    </main>
   );
 }

@@ -1,0 +1,14 @@
+title = "HabitQuest publication secret detection"
+
+[extend]
+useDefault = true
+
+# Keep every default rule. Only this exact non-auth documentation example is exempt.
+[[rules]]
+id = "generic-api-key"
+[[rules.allowlists]]
+description = "Exact documented purchase idempotency UUID, not a session/API credential"
+condition = "AND"
+paths = ['(^|/)REWARDS_ANALYTICS\.md$']
+regexTarget = "line"
+regexes = ['^\s*"idempotencyKey": "e4cf5066-a37e-447d-b8dc-8949b7bbd266",?\s*$']

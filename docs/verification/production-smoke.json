@@ -1,0 +1,11 @@
+{
+  "verifiedAt": "2026-11-17T00:19:55.372Z",
+  "configuration": "Built API started from environment without loading a local .env; no live platform deployment",
+  "liveness": 200,
+  "readinessWithUnavailableDatabase": 503,
+  "insecureProtectedRequest": 400,
+  "forwardedHttpsWithoutSession": 401,
+  "gracefulShutdownExit": 0,
+  "credentialsAbsentFromLogs": true,
+  "liveManagedTlsDatabase": "Not run; provider credentials unavailable"
+}

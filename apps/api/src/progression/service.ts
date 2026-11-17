@@ -32,11 +32,44 @@ export async function gameRecords(
   now: Date,
 ) {
   const asOf = localDate(now, user.timezone);
-  const habits = await tx.habit.findMany({
+  // Prisma's multi-relation query loader runs sibling queries concurrently on a
+  // single transaction client. Read each relation sequentially in constant batches.
+  const rows = await tx.habit.findMany({
     where: { userId: user.id },
-    include: gameHabitInclude,
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
+  const schedules = await tx.habitScheduleVersion.findMany({
+    where: { habit: { userId: user.id } },
+  });
+  const completions = await tx.habitCompletion.findMany({
+    where: { habit: { userId: user.id }, undoneAt: null },
+  });
+  const pauses = await tx.habitPause.findMany({
+    where: { habit: { userId: user.id } },
+  });
+  const freezeUses = await tx.streakFreezeUse.findMany({
+    where: { habit: { userId: user.id } },
+  });
+  function group<T extends { habitId: string }>(values: T[]) {
+    const result = new Map<string, T[]>();
+    for (const v of values) {
+      const items = result.get(v.habitId) ?? [];
+      items.push(v);
+      result.set(v.habitId, items);
+    }
+    return result;
+  }
+  const s = group(schedules),
+    c = group(completions),
+    p = group(pauses),
+    f = group(freezeUses);
+  const habits = rows.map((h) => ({
+    ...h,
+    schedules: s.get(h.id) ?? [],
+    completions: c.get(h.id) ?? [],
+    pauses: p.get(h.id) ?? [],
+    freezeUses: f.get(h.id) ?? [],
+  }));
   const evaluated = habits.map((habit) => ({
     habit,
     stats: streaks({

@@ -1,3 +1,4 @@
+import { jsonLogger, requestLogging, type Logger } from "./observability.js";
 import { rewardsRouter, redemptionsRouter } from "./rewards/routes.js";
 import { analyticsRouter } from "./analytics/routes.js";
 import { progressionRouter } from "./progression/routes.js";
@@ -13,7 +14,12 @@ import { Prisma } from "./generated/prisma/client.js";
 import { healthSchema } from "@habitquest/shared";
 export function createApp(
   origin = "http://localhost:5173",
-  options: Partial<AppDependencies> = {},
+  options: Partial<AppDependencies> & {
+    logger?: Logger;
+    trustProxyHops?: number;
+    isDraining?: () => boolean;
+    enforceHttps?: boolean;
+  } = {},
 ) {
   let db: ReturnType<typeof createDatabase> | undefined;
   const deps: AppDependencies = {
@@ -25,11 +31,49 @@ export function createApp(
     authLimit: 20,
     ...options,
   };
+  if (
+    deps.production &&
+    process.env.NODE_ENV !== "test" &&
+    (!deps.rateLimitSecret ||
+      deps.rateLimitSecret.length < 32 ||
+      !deps.origin.startsWith("https://"))
+  )
+    throw new Error("Invalid production application security configuration");
+  const log =
+    options.logger ?? (process.env.NODE_ENV === "test" ? () => {} : jsonLogger);
   const app = express();
+  app.set("trust proxy", options.trustProxyHops ?? false);
+  app.use(requestLogging(log));
+  app.use((_req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    next();
+  });
   app.disable("x-powered-by");
   app.use(helmet());
   app.use(cors({ origin: deps.origin, credentials: true }));
+  app.use((req, _res, next) => {
+    if (
+      (options.enforceHttps ??
+        (deps.production && process.env.NODE_ENV !== "test")) &&
+      !req.secure &&
+      !["/api/health", "/api/ready"].includes(req.path)
+    )
+      return next(new ApiError(400, "HTTPS_REQUIRED", "HTTPS is required."));
+    next();
+  });
   app.use(express.json({ limit: "32kb" }));
+  app.get("/api/ready", async (_req, res) => {
+    if (options.isDraining?.()) {
+      res.status(503).json({ status: "unavailable" });
+      return;
+    }
+    try {
+      await deps.database().$queryRaw`SELECT 1`;
+      res.json({ status: "ready", service: "habitquest-api" });
+    } catch {
+      res.status(503).json({ status: "unavailable" });
+    }
+  });
   // Liveness only: deliberately does not imply database readiness.
   app.get("/api/health", (_req, res) =>
     res.json(healthSchema.parse({ status: "ok", service: "habitquest-api" })),
@@ -100,13 +144,32 @@ export function createApp(
       });
       return;
     }
-    console.error("Unhandled API error", {
-      name: error instanceof Error ? error.name : "Unknown",
-      code:
-        error instanceof Prisma.PrismaClientKnownRequestError
-          ? error.code
-          : undefined,
+    const code =
+      error instanceof Prisma.PrismaClientKnownRequestError
+        ? error.code
+        : undefined;
+    const unavailable =
+      error instanceof Prisma.PrismaClientInitializationError ||
+      (code !== undefined &&
+        ["P1001", "P1002", "P1008", "P1017", "P2024", "P2037"].includes(code));
+    log({
+      event: "api_error",
+      requestId: String(res.locals.requestId),
+      code: unavailable ? "DATABASE_UNAVAILABLE" : "INTERNAL_ERROR",
     });
+    if (unavailable) {
+      res
+        .set("Retry-After", "5")
+        .status(503)
+        .json({
+          error: {
+            code: "DATABASE_UNAVAILABLE",
+            message:
+              "The service is temporarily unavailable. Please try again.",
+          },
+        });
+      return;
+    }
     res.status(500).json({
       error: {
         code: "INTERNAL_ERROR",

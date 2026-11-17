@@ -122,16 +122,29 @@ export function habitsRouter(deps: AppDependencies) {
   router.get("/today", async (req, res) => {
     const user = req.auth!.user;
     const date = localDate(deps.now(), user.timezone);
-    const rows = await deps.database().habit.findMany({
-      where: { userId: user.id, archivedAt: null },
-      include: {
-        ...withSchedules,
-        completions: {
-          where: { scheduledDate: calendarDate(date), undoneAt: null },
-        },
+    const rows = await deps.database().$transaction(
+      async (tx) => {
+        const habits = await tx.habit.findMany({
+          where: { userId: user.id, archivedAt: null },
+          include: withSchedules,
+          orderBy: { createdAt: "asc" },
+        });
+        const completions = await tx.habitCompletion.findMany({
+          where: {
+            habit: { userId: user.id, archivedAt: null },
+            scheduledDate: calendarDate(date),
+            undoneAt: null,
+          },
+          select: { habitId: true },
+        });
+        const completed = new Set(completions.map((c) => c.habitId));
+        return habits.map((h) => ({
+          ...h,
+          completions: completed.has(h.id) ? [true] : [],
+        }));
       },
-      orderBy: { createdAt: "asc" },
-    });
+      { isolationLevel: "RepeatableRead" },
+    );
     const habits = rows
       .filter((h) => {
         const schedule = effectiveSchedule(h.schedules, date);

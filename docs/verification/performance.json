@@ -1,0 +1,127 @@
+{
+  "measuredAt": "2026-11-17T00:09:28.320Z",
+  "tool": "Node fetch closed-loop local load runner",
+  "environment": {
+    "node": "v24.11.1",
+    "platform": "darwin",
+    "arch": "arm64",
+    "poolMax": 10,
+    "workers": 4,
+    "fixture": "Four isolated users, eight habits each, fourteen days of actual transaction-service history; additional 1-vs-24 habit query probes",
+    "target": "ephemeral in-process API on 127.0.0.1, PostgreSQL in local Docker; not production"
+  },
+  "budgets": {
+    "authenticationP95Ms": 1500,
+    "readP95Ms": 500,
+    "writeCycleP95Ms": 1000,
+    "errorRate": 0,
+    "note": "Targets for this local smoke workload, not a production SLA"
+  },
+  "results": [
+    {
+      "scenario": "authentication",
+      "requests": 16,
+      "workers": 4,
+      "p50Ms": 86.64,
+      "p95Ms": 122.32,
+      "p99Ms": 122.32,
+      "throughputPerSecond": 42.21,
+      "errorRate": 0,
+      "errors": 0,
+      "sqlStatements": 96
+    },
+    {
+      "scenario": "daily_dashboard",
+      "requests": 32,
+      "workers": 4,
+      "p50Ms": 3.54,
+      "p95Ms": 14.05,
+      "p99Ms": 14.11,
+      "throughputPerSecond": 809.48,
+      "errorRate": 0,
+      "errors": 0,
+      "sqlStatements": 192
+    },
+    {
+      "scenario": "habit_completion",
+      "requests": 32,
+      "workers": 4,
+      "p50Ms": 58.77,
+      "p95Ms": 66.16,
+      "p99Ms": 67.63,
+      "throughputPerSecond": 66.47,
+      "errorRate": 0,
+      "errors": 0,
+      "sqlStatements": 2780,
+      "note": "Each measured cycle includes undo plus completion; SQL includes both requests."
+    },
+    {
+      "scenario": "progression",
+      "requests": 32,
+      "workers": 4,
+      "p50Ms": 6.78,
+      "p95Ms": 7.96,
+      "p99Ms": 8,
+      "throughputPerSecond": 572.22,
+      "errorRate": 0,
+      "errors": 0,
+      "sqlStatements": 480
+    },
+    {
+      "scenario": "analytics",
+      "requests": 32,
+      "workers": 4,
+      "p50Ms": 22.03,
+      "p95Ms": 29.26,
+      "p99Ms": 29.41,
+      "throughputPerSecond": 176.35,
+      "errorRate": 0,
+      "errors": 0,
+      "sqlStatements": 416
+    },
+    {
+      "scenario": "reward_redemption",
+      "requests": 32,
+      "workers": 4,
+      "p50Ms": 10.74,
+      "p95Ms": 15.98,
+      "p99Ms": 16.23,
+      "throughputPerSecond": 353.28,
+      "errorRate": 0,
+      "errors": 0,
+      "sqlStatements": 736
+    }
+  ],
+  "queryScaling": [
+    {
+      "habits": 1,
+      "path": "/api/habits/today",
+      "sqlStatements": 6
+    },
+    {
+      "habits": 1,
+      "path": "/api/progression",
+      "sqlStatements": 15
+    },
+    {
+      "habits": 1,
+      "path": "/api/analytics",
+      "sqlStatements": 13
+    },
+    {
+      "habits": 24,
+      "path": "/api/habits/today",
+      "sqlStatements": 6
+    },
+    {
+      "habits": 24,
+      "path": "/api/progression",
+      "sqlStatements": 15
+    },
+    {
+      "habits": 24,
+      "path": "/api/analytics",
+      "sqlStatements": 13
+    }
+  ]
+}

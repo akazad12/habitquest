@@ -572,6 +572,24 @@ export function RewardsPage() {
         ref={dialog}
         className="purchase-dialog"
         aria-labelledby="purchase-title"
+        aria-describedby="purchase-summary purchase-policy"
+        onKeyDown={(event) => {
+          if (event.key !== "Tab") return;
+          const buttons = Array.from(
+            event.currentTarget.querySelectorAll<HTMLButtonElement>(
+              "button:not(:disabled)",
+            ),
+          );
+          const first = buttons[0],
+            last = buttons.at(-1);
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last?.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first?.focus();
+          }
+        }}
         onCancel={(e) => {
           if (pending === "purchase" || uncertain) e.preventDefault();
           else setIntent(null);
@@ -586,11 +604,11 @@ export function RewardsPage() {
             ? "Confirm your previous request"
             : "Ready to enjoy your reward?"}
         </h2>
-        <p>
+        <p id="purchase-summary">
           Reserve <strong>{intent?.title}</strong> for{" "}
           <strong>{intent?.expectedCoinCost.toLocaleString()} coins</strong>.
         </p>
-        <p className="muted">
+        <p id="purchase-policy" className="muted">
           You can cancel a pending redemption for an exact refund. Marking it
           fulfilled makes it final.
         </p>

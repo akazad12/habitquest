@@ -1,0 +1,147 @@
+{
+  "measuredAt": "2026-11-17T00:28:16.109Z",
+  "engine": "axe-core / Playwright Chromium",
+  "scope": "WCAG 2.2 AA automated rules; reduced-motion setting; synthetic isolated demo account",
+  "results": [
+    {
+      "name": "login",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 8
+        }
+      ]
+    },
+    {
+      "name": "register",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 8
+        }
+      ]
+    },
+    {
+      "name": "today",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 8
+        }
+      ]
+    },
+    {
+      "name": "habits",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "name": "analytics",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 44
+        }
+      ]
+    },
+    {
+      "name": "rewards",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 12
+        }
+      ]
+    },
+    {
+      "name": "purchase_dialog",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 3
+        }
+      ]
+    },
+    {
+      "name": "profile",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "name": "habit_form",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "name": "reward_form",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "name": "today_mobile",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 6
+        }
+      ]
+    },
+    {
+      "name": "habits_mobile",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "analytics_mobile",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 45
+        }
+      ]
+    },
+    {
+      "name": "rewards_mobile",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 10
+        }
+      ]
+    },
+    {
+      "name": "profile_mobile",
+      "violations": [],
+      "incomplete": []
+    }
+  ]
+}

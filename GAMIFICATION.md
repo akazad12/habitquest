@@ -1,5 +1,7 @@
 # HabitQuest gamification rules — Phase 3
 
+> Phase 5 operational verification supersedes the historical results below: see [the current handoff](docs/PHASE5_HANDOFF.md). Progression and analytics product rules are unchanged. The adapter warning was avoided through sequential batch relation reads; no major dependency upgrade or warning suppression was used.
+
 This document is the contract for implemented progression. All progression comes from authenticated, owned database records. The React client formats backend results; it does not calculate XP, level thresholds, streaks, coins, achievement eligibility, or freeze eligibility.
 
 ## Calendar and streak definitions
@@ -174,6 +176,6 @@ Browser verification additionally used clearly labeled isolated fixtures whose h
 - Historical pauses that Phase 2 never recorded cannot be recovered; future pauses are audited.
 - Prior unawarded completions do not receive a bulk XP/coin backfill. Legacy explicit award rows need audited reconciliation before automatic undo.
 - Streaks are evaluated from history on demand; there is no background statistics projection or production-scale load-test result. Writes deliberately serialize per user.
-- The installed Prisma/node-postgres adapter emits a concurrent-query deprecation warning from its relation-loading runtime. It was traced, not suppressed; all application transaction calls are awaited and PostgreSQL correctness tests pass. An upstream compatibility update remains future dependency maintenance.
+- Phase 3 emitted a Prisma/node-postgres concurrent-query warning from internal relation loading. Phase 5 avoids the affected path using sequential batch reads; the expanded regression suite emits no adapter warning, without suppression or a major upgrade.
 - Hosted GitHub Actions, production HTTPS deployment, assistive-technology audit, and OS-level reduced-motion emulation are unverified. The implemented reduced-motion CSS is present in the production build.
 - Phase 4 adds the rewards marketplace and analytics; leaderboards, AI coaching, premium plans, and a paid freeze store remain outside scope. Progression rules above are unchanged.

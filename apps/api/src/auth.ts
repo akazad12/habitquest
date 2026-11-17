@@ -3,6 +3,7 @@ import { parse, serialize } from "cookie";
 import * as argon2 from "argon2";
 import type { Request, Response, RequestHandler } from "express";
 import { Router } from "express";
+import { PostgresRateLimitStore } from "./rate-limit-store.js";
 import { rateLimit } from "express-rate-limit";
 import { loginSchema, registerSchema, profileSchema } from "@habitquest/shared";
 import {
@@ -31,6 +32,7 @@ export type AppDependencies = {
   sessionDays: number;
   origin: string;
   authLimit: number;
+  rateLimitSecret?: string;
 };
 const hashing: argon2.HashOptions = {
   type: argon2.argon2id,
@@ -125,6 +127,10 @@ export async function lockUser(tx: Prisma.TransactionClient, userId: string) {
 export function authRouter(deps: AppDependencies) {
   const router = Router();
   const limiter = rateLimit({
+    store:
+      deps.production && deps.rateLimitSecret
+        ? new PostgresRateLimitStore(deps.database, deps.rateLimitSecret!, "ip")
+        : undefined,
     windowMs: 15 * 60 * 1000,
     limit: deps.authLimit,
     standardHeaders: "draft-8",
@@ -136,6 +142,31 @@ export function authRouter(deps: AppDependencies) {
       },
     },
   });
+  const accountLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 10,
+    standardHeaders: "draft-8",
+    legacyHeaders: false,
+    store:
+      deps.production && deps.rateLimitSecret
+        ? new PostgresRateLimitStore(
+            deps.database,
+            deps.rateLimitSecret!,
+            "account",
+          )
+        : undefined,
+    keyGenerator: (req) =>
+      typeof req.body?.email === "string"
+        ? req.body.email.trim().toLowerCase().slice(0, 254)
+        : "invalid",
+    message: {
+      error: {
+        code: "RATE_LIMITED",
+        message: "Too many attempts. Please try again later.",
+      },
+    },
+  });
+  const limits = deps.production ? [limiter, accountLimiter] : [limiter];
   async function establish(
     req: Request,
     user: AuthUser,
@@ -162,7 +193,7 @@ export function authRouter(deps: AppDependencies) {
     // Cookie is emitted only after the surrounding transaction commits.
     return { user, csrfToken, token, expiresAt };
   }
-  router.post("/register", limiter, async (req, res) => {
+  router.post("/register", ...limits, async (req, res) => {
     const input = registerSchema.parse(req.body);
     const passwordHash = await hashPassword(input.password);
     try {
@@ -193,7 +224,7 @@ export function authRouter(deps: AppDependencies) {
       throw error;
     }
   });
-  router.post("/login", limiter, async (req, res) => {
+  router.post("/login", ...limits, async (req, res) => {
     const input = loginSchema.parse(req.body);
     const db = deps.database();
     const user = await db.user.findUnique({ where: { email: input.email } });

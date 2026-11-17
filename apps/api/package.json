@@ -7,8 +7,9 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit",
     "dev": "tsx watch --env-file=../../.env src/server.ts",
-    "start": "node --env-file=../../.env dist/server.js",
-    "sessions:prune": "tsx --env-file=../../.env src/prune-sessions.ts"
+    "start": "node --env-file-if-exists=../../.env dist/server.js",
+    "sessions:prune": "tsx --env-file=../../.env src/prune-sessions.ts",
+    "maintenance": "node --env-file-if-exists=../../.env dist/prune-sessions.js"
   },
   "dependencies": {
     "@habitquest/shared": "*",

@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "engines": {
-    "node": ">=22.12"
+    "node": ">=24"
   },
   "scripts": {
     "dev": "concurrently -k -n shared,api,web \"npm run dev -w @habitquest/shared\" \"npm run dev -w @habitquest/api\" \"npm run dev -w @habitquest/web\"",
@@ -21,7 +21,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "predev": "npm run build -w @habitquest/shared",
-    "test:db": "vitest run tests/database.test.ts tests/phase2.test.ts tests/progression.integration.test.ts tests/rewards.integration.test.ts tests/analytics.integration.test.ts",
+    "test:db": "vitest run tests/database.test.ts tests/phase2.test.ts tests/progression.integration.test.ts tests/rewards.integration.test.ts tests/analytics.integration.test.ts tests/rate-limit.integration.test.ts",
     "pretest": "npm run build -w @habitquest/shared",
     "pretest:db": "npm run build -w @habitquest/shared",
     "sessions:prune": "npm run sessions:prune -w @habitquest/api",
@@ -30,27 +30,37 @@
     "test:rewards": "vitest run tests/rewards.integration.test.ts",
     "pretest:rewards": "npm run build -w @habitquest/shared",
     "test:analytics": "vitest run tests/analytics-engine.test.ts tests/analytics.integration.test.ts",
-    "pretest:analytics": "npm run build -w @habitquest/shared"
+    "pretest:analytics": "npm run build -w @habitquest/shared",
+    "check:secrets": "node scripts/check-secrets.mjs && node scripts/scan-secrets.mjs",
+    "security:audit": "npm audit --audit-level=moderate",
+    "demo:seed": "tsx scripts/demo-seed.ts",
+    "test:a11y": "tsx scripts/accessibility.ts",
+    "test:performance": "tsx performance/run.ts",
+    "test:production": "vitest run tests/production.test.ts tests/rate-limit.integration.test.ts",
+    "pretest:production": "npm run build -w @habitquest/shared",
+    "test:production-smoke": "tsx scripts/production-smoke.ts"
   },
   "dependencies": {
-    "@prisma/client": "^7.0.0",
     "@prisma/adapter-pg": "^7.0.0",
+    "@prisma/client": "^7.0.0",
     "dotenv": "^17.2.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "typescript": "~5.9.3",
-    "prisma": "^7.0.0",
-    "vitest": "^4.0.0",
-    "eslint": "^9.0.0",
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^9.0.0",
-    "typescript-eslint": "^8.0.0",
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^24.0.0",
+    "@types/supertest": "^6.0.0",
+    "concurrently": "^9.0.0",
+    "eslint": "^9.0.0",
     "eslint-plugin-react-hooks": "^7.0.0",
     "globals": "^16.0.0",
     "prettier": "^3.0.0",
-    "concurrently": "^9.0.0",
-    "@types/node": "^24.0.0",
+    "prisma": "^7.0.0",
     "supertest": "^7.0.0",
-    "@types/supertest": "^6.0.0"
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^4.0.0"
   }
 }

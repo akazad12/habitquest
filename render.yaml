@@ -1,0 +1,31 @@
+# Review costs and secrets before importing. This file does not deploy anything.
+services:
+  - type: web
+    name: habitquest-api
+    runtime: node
+    plan: starter
+    numInstances: 1
+    autoDeployTrigger: "off"
+    buildCommand: npm ci && npm run db:generate && npm run build -w @habitquest/shared && npm run build -w @habitquest/api
+    preDeployCommand: npm run db:deploy
+    startCommand: npm run start -w @habitquest/api
+    healthCheckPath: /api/ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "24"
+      - key: HOST
+        value: 0.0.0.0
+      - key: TRUST_PROXY_HOPS
+        value: "1"
+      - key: DB_POOL_MAX
+        value: "10"
+      - key: WEB_ORIGIN
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: MIGRATION_DATABASE_URL
+        sync: false
+      - key: RATE_LIMIT_SECRET
+        generateValue: true
